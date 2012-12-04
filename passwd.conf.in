@@ -1,0 +1,8 @@
+# Fink passwd configuration file
+#
+# Set AutoUid: false if you need to enter manual values for the UID and GID of the
+# passwd-* users.
+#
+# Set AutoUidMin and AutoUidMax to change the range from which UIDs and GIDs will
+# be allocated.
+#
