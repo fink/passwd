@@ -21,6 +21,7 @@ groupname="$5"
 groupmembership="$6" 
 
 merge_user_info() {
+    #OBSOLETE
 	FILE="$1"
 	FINK_PASSWD_USER="$2"
 	case `uname -r` in
@@ -62,6 +63,7 @@ merge_user_info() {
 }
 
 merge_group_info() {
+    # put in main just like merge_user_info because it only gets called once
 	FILE="$1"
 	GROUP="$2"
 	case `uname -r` in
@@ -97,18 +99,48 @@ merge_group_info() {
 	esac
 }
 
-get_unused_id()
-
-if [ ! $1 ]; then
-	echo "No user was specified to be added."
-	echo "update-passwd needs to know which user will be added to the system."
-	exit 1
-fi
+### Verify that update-passwd was called correctly
 
 if [ ! $6 ]; then
-	echo "update-passwd needs exactly 6 arguments."
+	echo "update-passwd needs exactly 6 arguments:"
+        echo "update-passwd username info home shell groupname groupmembership"
 	exit 1
 fi
+
+### check for existing user
+
+idcheck=`/usr/bin/id $name 2>/dev/null`
+if [ "x$idcheck" = "x" ]; then
+    echo "'$name' user exists, with parameters:"
+    echo
+    echo $idcheck
+    echo
+    echo "Fink will use these settings."
+    ADDUSER=0
+else
+    ADDUSER=1
+fi    
+
+# check for existing group
+idcheck=`dscl . -read /Groups/$groupname 2>/dev/null`
+if [ "x$idcheck" = "x" ]; then
+    echo "'$groupname' group exists, with parameters:"
+    echo
+    echo $idcheck
+    echo
+    echo "Fink will use these settings."
+    ADDGROUP=0
+else
+    ADDUSER=1
+fi    
+
+# We can exit with success if both the user and group are available
+
+if [ [ ADDUSER eq 0 ] -a [ ADDGROUP eq 0 ] ] ; then
+    exit 0
+fi
+
+# press on
 
 ### dynamic UID/GID allocation
 
@@ -129,7 +161,7 @@ if [ "x"`grep AutoUid: $PREFIX/etc/fink.conf` = "x" ] ; then
 	done
 	if [ $uid -eq 0 ] ; then
 		printf "I couldn't find an unused UID in the range %d - %d.\n" $uidmin $uidmax 
-		printf "You may need to expand this range by editing $PREFIX/etc/fink.conf.\n"
+		printf "You can expand this range via 'fink configure'.\n"
                 exit 1
 	fi
 	#gid
@@ -142,11 +174,13 @@ if [ "x"`grep AutoUid: $PREFIX/etc/fink.conf` = "x" ] ; then
 	done
 	if [ $gid -eq 0 ] ; then
 		printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
-		printf "You may need to expand this range by editing $PREFIX/etc/fink.conf.\n"
+		printf "You can expand this range via 'fink configure'.\n"
 	fi
+else
+    #manual entry
+    #TODO
 fi
 
-### check for existing user
 idcheck=`/usr/bin/id $name 2>/dev/null`
 if [ "x$idcheck" = "x" ]; then
 	echo
@@ -159,12 +193,6 @@ if [ "x$idcheck" = "x" ]; then
 	echo "UserShell: "$shell
 	ADDUSER=1
 else 
-	echo "$USER user exists, with parameters:"
-	echo
-	echo $idcheck
-	echo
-	echo "Fink will use these."
-	ADDUSER=0
 end 
 ### check for existing group here
 
