@@ -20,48 +20,6 @@ shell="$4"
 groupname="$5"
 groupmembership="$6" 
 
-merge_user_info() {
-    #OBSOLETE
-	FILE="$1"
-	FINK_PASSWD_USER="$2"
-	case `uname -r` in
-		8*)
-				niload passwd . <$FILE
-			;;
-		*)
-			OIFS=$IFS
-			IFS=:
-			cat $FILE | grep $FINK_PASSWD_USER | while read name passwd uid gid junk1 junk2 junk3 info home shell; do
-				idtest=`/usr/bin/id $uid 2>/dev/null`
-				if [ "x$idtest" = "x" ] ; then
-					dscl . create /users/$name
-					dscl . create /users/$name name $name
-					dscl . create /users/$name passwd '*'
-					dscl . create /users/$name hint ""
-					dscl . create /users/$name uid $uid
-					dscl . create /users/$name gid $gid
-					dscl . create /users/$name home "$home"
-					dscl . create /users/$name shell "$shell"
-					dscl . create /users/$name realname "$info"
-					dscl . delete /users/$name AuthenticationAuthority
-				else
-					echo
-					echo "WARNING:  UID $uid is in use by:"
-					echo
-					echo $idtest
-					echo
-					echo "I am not overwriting this."
-					echo "You will need to edit $PREFIX/etc/passwd-fink manually"
-					echo "and set the UID entry for $FINK_PASSWD_USER to an unused"
-					echo "value."
-					echo
-				fi
-			done
-			IFS=$OIFS
-			;;
-	esac
-}
-
 merge_group_info() {
     # put in main just like merge_user_info because it only gets called once
 	FILE="$1"
@@ -136,49 +94,57 @@ fi
 
 # We can exit with success if both the user and group are available
 
-if [ [ ADDUSER eq 0 ] -a [ ADDGROUP eq 0 ] ] ; then
+if [ [ $ADDUSER -eq 0 ] -a [ $ADDGROUP -eq 0 ] ] ; then
     exit 0
 fi
 
-# press on
+# otherwise, press on
 
 ### dynamic UID/GID allocation
 
 uid=0
 gid=0
 # Test passwd.conf
-if [ "x"`grep AutoUid: $PREFIX/etc/fink.conf` = "x" ] ; then
-	#Auto ID
-	uidmin=`grep AutoUidMin $PREFIX/etc/fink.conf | cut d: -f2`
-	uidmax=`grep AutoUidMax $PREFIX/etc/fink.conf | cut d: -f2`
-	#uid
-	for test_id in {$uidmin..$uidmax} ; do
-		check_id=`id $test_id 2&>/dev/null | grep uid`
-		if [ "x"$check_id = "x" ] ; then 
-			uid=$check_uid
-			break
-		fi
-	done
-	if [ $uid -eq 0 ] ; then
-		printf "I couldn't find an unused UID in the range %d - %d.\n" $uidmin $uidmax 
-		printf "You can expand this range via 'fink configure'.\n"
-                exit 1
-	fi
-	#gid
-	for test_id in {$uidmin..$uidmax} ; do
-		check_id=`id $test_id 2&>/dev/null | grep gid`
-		if [ "x"$check_id = "x" ] ; then 
-			gid=$check_uid
-			break
-		fi
-	done
-	if [ $gid -eq 0 ] ; then
-		printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
-		printf "You can expand this range via 'fink configure'.\n"
-	fi
+if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
+    #Auto ID
+    uidmin=`grep AutoUidMin $PREFIX/etc/fink.conf | cut d: -f2`
+    uidmax=`grep AutoUidMax $PREFIX/etc/fink.conf | cut d: -f2`
+    #uid
+    printf "AutoUID is configured.  Locating unused IDs between %d and %d\n" uidmin uidmax
+    if [ $ADDUSER -ne 0 ] ; then
+        for test_id in {$uidmin..$uidmax} ; do
+            check_id=`id $test_id 2&>/dev/null | grep uid`
+        	if [ "x"$check_id = "x" ] ; then 
+        	    uid=$check_uid
+        	    break
+        	fi
+        done
+        if [ $uid -eq 0 ] ; then
+            # bail if we can't allocate a UID
+            printf "I couldn't find an unused UID in the range %d - %d.\n" $uidmin $uidmax 
+            printf "You can expand this range via 'fink configure'.\n"
+            exit 1
+        fi
+    fi
+    
+    #gid
+    for test_id in {$uidmin..$uidmax} ; do
+        check_id=`id $test_id 2&>/dev/null | grep gid`
+        if [ "x"$check_id = "x" ] ; then 
+            gid=$check_uid
+            break
+        fi
+    done
+    if [ $gid -eq 0 ] ; then
+        # bail if we can't allocate a GID
+        printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
+        printf "You can expand this range via 'fink configure'.\n"
+        exit 1
+    fi
 else
     #manual entry
     #TODO
+    
 fi
 
 idcheck=`/usr/bin/id $name 2>/dev/null`

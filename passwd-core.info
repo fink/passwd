@@ -24,11 +24,23 @@ PostInstScript: <<
 	auid=`%p/share/%n/get_fink_auto_uid.pl --auto`
 	# transfer settings appropriately
 	if [ $auid -eq 1 ] ; then
+		echo "Using AutoUID settings from fink.conf"
 		printf "AutoUid: true\n" >> passwd.conf
 		printf "AutoUidMin: %d\n" `%p/share/%n/get_fink_auto_uid.pl --min` >> passwd.conf
 		printf "AutoUidMax: %d\n" `%p/share/%n/get_fink_auto_uid.pl --max` >> passwd.conf
 	else
-		printf "AutoUid: false\n" >> passwd.conf	
+		#TODO give user option to set up AutoUid for passwd if fink.conf
+		#doesn't have it
+		echo "We recommend allocating UIDs and GIDs automatically."
+		# blah blah blah #
+		/bin/echo "Set UIDs/GIDs automatically? [Y/n] \c"
+		read answer
+		answer=`echo $answer | sed 's/^[yY].*$/y/'`
+		if [ -z "$answer" -o "x$answer" = "xy" ]; then
+			
+		else	
+			printf "AutoUid: false\n" >> passwd.conf	
+		fi
 	fi
 << 
 SplitOff: <<
