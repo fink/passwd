@@ -7,6 +7,7 @@ PatchFile-MD5: b0b376fe8a5b1facec5d44b013d28170
 PatchScript: <<
  sed 's|@PREFIX@|%p|g' <update-passwd.in >update-passwd
  sed 's|@PREFIX@|%p|g' <get_fink_auto_uid.pl.in >get_fink_auto_uid.pl
+ sed 's|@PREFIX@|%p|g' <README.in >README
 <<
 CompileScript <<
 echo "No compiling required."
@@ -15,11 +16,11 @@ InstallScript: <<
  mkdir -p %i/etc %i/sbin %i/share/%n
  install -c -m 755 update-passwd %i/sbin/
  install -c -m 755 get_fink_auto_uid.pl %i/share/%n
- install passwd.conf.in %i/share/%n
+ install passwd.conf.in %i/etc/passwd.conf
 <<
 ConfFiles: %p/etc/passwd.conf
 PostInstScript: <<
-	cp %i/share/passwd.conf.ing %i/etc/passwd
+if [ $1 = "configure" ] ; then
 	# Check for AutoUid: in fink.conf
 	auid=`%p/share/%n/get_fink_auto_uid.pl --auto`
 	# transfer settings appropriately
@@ -28,20 +29,26 @@ PostInstScript: <<
 		printf "AutoUid: true\n" >> passwd.conf
 		printf "AutoUidMin: %d\n" `%p/share/%n/get_fink_auto_uid.pl --min` >> passwd.conf
 		printf "AutoUidMax: %d\n" `%p/share/%n/get_fink_auto_uid.pl --max` >> passwd.conf
+		echo "UIDs and GIDs will be dynamically allocated when package-specific users get installed."
 	else
 		#TODO give user option to set up AutoUid for passwd if fink.conf
 		#doesn't have it
-		echo "We recommend allocating UIDs and GIDs automatically."
-		# blah blah blah #
+		echo "We recommend allocating UIDs and GIDs automatically, unless you have"
+		echo "specific requirements for UIDs and GIDs."
 		/bin/echo "Set UIDs/GIDs automatically? [Y/n] \c"
 		read answer
 		answer=`echo $answer | sed 's/^[yY].*$/y/'`
 		if [ -z "$answer" -o "x$answer" = "xy" ]; then
-			
-		else	
+			printf "AutoUid: true\n" >> passwd.conf
+			printf "AutoUidMin: %d\n" `%p/share/%n/get_fink_auto_uid.pl --min` >> passwd.conf
+			printf "AutoUidMax: %d\n" `%p/share/%n/get_fink_auto_uid.pl --max` >> passwd.conf			
+			echo "UIDs and GIDs will be dynamically allocated when package-specific users get installed."
+		else
+			echo "OK.  You will be prompted to enter ID numbers for each package-specific user."
 			printf "AutoUid: false\n" >> passwd.conf	
 		fi
 	fi
+fi
 << 
 SplitOff: <<
  Package: passwd-news
