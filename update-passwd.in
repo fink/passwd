@@ -60,7 +60,7 @@ merge_group_info() {
 ### Verify that update-passwd was called correctly
 
 if [ ! $6 ]; then
-	echo "update-passwd needs exactly 6 arguments:"
+	echo "update-passwd needs 6 arguments:"
         echo "update-passwd username info home shell groupname groupmembership"
 	exit 1
 fi
@@ -89,7 +89,7 @@ if [ "x$idcheck" = "x" ]; then
     echo "Fink will use these settings."
     ADDGROUP=0
 else
-    ADDUSER=1
+    ADDGROUP=1
 fi    
 
 # We can exit with success if both the user and group are available
@@ -110,7 +110,7 @@ if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
     uidmin=`grep AutoUidMin $PREFIX/etc/fink.conf | cut d: -f2`
     uidmax=`grep AutoUidMax $PREFIX/etc/fink.conf | cut d: -f2`
     #uid
-    printf "AutoUID is configured.  Locating unused IDs between %d and %d\n" uidmin uidmax
+    printf "AutoUID is configured.  Locating an unused ID between %d and %d\n" uidmin uidmax
     if [ $ADDUSER -ne 0 ] ; then
         for test_id in {$uidmin..$uidmax} ; do
             check_id=`id $test_id 2&>/dev/null | grep uid`
@@ -122,50 +122,43 @@ if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
         if [ $uid -eq 0 ] ; then
             # bail if we can't allocate a UID
             printf "I couldn't find an unused UID in the range %d - %d.\n" $uidmin $uidmax 
-            printf "You can expand this range via 'fink configure'.\n"
+            printf "You can expand this range by changing the AutoUidMin and/or\n"
+            printf "AutoUidMax values in @PREFIX@/etc/passwd.conf .\n"
             exit 1
         fi
     fi
     
     #gid
-    for test_id in {$uidmin..$uidmax} ; do
-        check_id=`id $test_id 2&>/dev/null | grep gid`
-        if [ "x"$check_id = "x" ] ; then 
-            gid=$check_uid
-            break
-        fi
-    done
-    if [ $gid -eq 0 ] ; then
-        # bail if we can't allocate a GID
-        printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
-        printf "You can expand this range via 'fink configure'.\n"
-        exit 1
+    if [ $ADDGROUP -ne 0 ] ; then
+	    for test_id in {$uidmin..$uidmax} ; do
+    	    check_id=`id $test_id 2&>/dev/null | grep gid`
+        	if [ "x"$check_id = "x" ] ; then 
+            	gid=$check_uid
+            	break
+	        fi
+    	done
+	    if [ $gid -eq 0 ] ; then
+    	    # bail if we can't allocate a GID
+        	printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
+            printf "You can expand this range by changing the AutoUidMin and/or\n"
+            printf "AutoUidMax values in @PREFIX@/etc/passwd.conf .\n"
+    	    exit 1
+	    fi
     fi
 else
-    #manual entry
+    #manual entries
     #TODO
-    
+	# read value, check if in use.
 fi
 
-idcheck=`/usr/bin/id $name 2>/dev/null`
-if [ "x$idcheck" = "x" ]; then
-	echo
-	echo "The following user entry will be added to your DirectoryServices database:"
-	echo "RecordName: "$name
-	echo "UniqueID: "$uid
-	echo "Primary Group ID: "$gid
-	echo "RealName: "$info
-	echo "NFSHomeDirectory: "$home
-	echo "UserShell: "$shell
-	ADDUSER=1
-else 
-end 
-### check for existing group here
-
-
 echo
-echo "The following group entry will be added to your DirectoryServices database:"
-grep $USER $PREFIX/etc/group-fink
+echo "The following user entry will be added to your DirectoryServices database:"
+echo "RecordName: "$name
+echo "UniqueID: "$uid
+echo "Primary Group ID: "$gid
+echo "RealName: "$info
+echo "NFSHomeDirectory: "$home
+echo "UserShell: "$shell
 
 echo
 	echo "Some Fink packages will not work unless these entries are in the"
