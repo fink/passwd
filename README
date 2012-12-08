@@ -1,9 +1,0 @@
-Passwd-core package for the Fink Project
-http://www.finkproject.org/
-
-The package passwd-core and it's associated splitoffs
-are in the Public Domain.
-
-This package adds several administrative user and group entries to
-your user database. These are needed to protect the data of several
-daemons (e.g. news server, database server).
