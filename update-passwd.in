@@ -61,7 +61,8 @@ merge_group_info() {
 
 if [ ! $6 ]; then
 	echo "update-passwd needs 6 arguments:"
-        echo "update-passwd username info home shell groupname groupmembership"
+	echo
+    echo "update-passwd username info home shell groupname groupmembership"
 	exit 1
 fi
 
@@ -95,6 +96,7 @@ fi
 # We can exit with success if both the user and group are available
 
 if [ [ $ADDUSER -eq 0 ] -a [ $ADDGROUP -eq 0 ] ] ; then
+	printf "Using existing entry for %s\n" $name
     exit 0
 fi
 
@@ -107,13 +109,13 @@ gid=0
 # Test passwd.conf
 if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
     #Auto ID
-    uidmin=`grep AutoUidMin $PREFIX/etc/fink.conf | cut d: -f2`
-    uidmax=`grep AutoUidMax $PREFIX/etc/fink.conf | cut d: -f2`
+    uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut d: -f2`
+    uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut d: -f2`
     #uid
     printf "AutoUID is configured.  Locating an unused ID between %d and %d\n" uidmin uidmax
     if [ $ADDUSER -ne 0 ] ; then
         for test_id in {$uidmin..$uidmax} ; do
-            check_id=`id $test_id 2&>/dev/null | grep uid`
+            check_id=`id $test_id 2>/dev/null | grep uid`
         	if [ "x"$check_id = "x" ] ; then 
         	    uid=$check_uid
         	    break
@@ -131,7 +133,7 @@ if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
     #gid
     if [ $ADDGROUP -ne 0 ] ; then
 	    for test_id in {$uidmin..$uidmax} ; do
-    	    check_id=`id $test_id 2&>/dev/null | grep gid`
+    	    check_id=`id $test_id 2>/dev/null | grep gid`
         	if [ "x"$check_id = "x" ] ; then 
             	gid=$check_uid
             	break
@@ -147,18 +149,34 @@ if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
     fi
 else
     #manual entries
+    echo "You are configured to enter UIDs and GIDs manually."
+    # UID
+    # read value, check if in use
+    unused=0
+    until [ $unused -ne 0 ]; do
+    	/bin/echo "Enter a value for the UID: \c"
+        read $test_id
+        check_id=`id $test_id 2>/dev/null | grep uid`
+        if [ "x"$check_id != "x" ] ; then 
+            printf "%d is use" $check_id
+        else
+            $unused=1
+            print "%d is available.  Using it.\n"
+        fi
+    done
+    
     #TODO
 	# read value, check if in use.
 fi
 
 echo
 echo "The following user entry will be added to your DirectoryServices database:"
-echo "RecordName: "$name
-echo "UniqueID: "$uid
-echo "Primary Group ID: "$gid
-echo "RealName: "$info
-echo "NFSHomeDirectory: "$home
-echo "UserShell: "$shell
+printf "RecordName: %s\n" $name
+printf "UniqueID: %s\n" $uid
+printf "Primary Group ID: %s\n" $gid
+printf "RealName: %s\n" $info
+printf "NFSHomeDirectory: %s\n" $home
+printf "UserShell: %s\n" $shell
 
 echo
 	echo "Some Fink packages will not work unless these entries are in the"
