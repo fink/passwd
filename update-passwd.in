@@ -1,93 +1,57 @@
 #!/bin/sh
 #
-# Merge Fink's passwd and group additions into NetInfo
+# Merge Fink's passwd and group additions into DirectoryServices
 #
 
-#NOTE:
-# AKH, 3 December 2012: Not yet usable, but I wanted to get it into public
+### Verify that update-passwd was called correctly
 
-if [ `id -u` -ne 0 ]; then
+if [ `/usr/bin/id -u` -ne 0 ]; then
 	echo "You must be root to run update-passwd."
 	exit 1
 fi
 
-PREFIX=@PREFIX@
-
-name="$1"
-info="$2"
-home="$3"
-shell="$4"
-groupname="$5"
-groupmembership="$6" 
-
-merge_group_info() {
-    # put in main just like merge_user_info because it only gets called once
-	FILE="$1"
-	GROUP="$2"
-	case `uname -r` in
-		8*)
-			niload group . <$FILE
-			;;
-		*)
-			OIFS=$IFS
-			IFS=:
-			cat $FILE | grep $GROUP | while read name passwd gid GroupMembership; do
-				gidtest=`dscl . list Groups PrimaryGroupID | grep $gid`
-				if [ "x$gidtest" = "x" ] ; then
-					dscl . create /groups/$groupname
-					dscl . create /groups/$groupname name $groupname
-					dscl . create /groups/$groupname passwd '*'
-					dscl . create /groups/$groupname gid $gid
-					dscl . create /groups/$groupname GroupMembership $GroupMembership
-				else
-					echo
-					echo "WARNING: GID $gid is in use by:"
-					echo
-					echo $gidtest
-					echo
-					echo "I am not overwriting this."
-					echo "You will need to edit $PREFIX/etc/group-fink manually"
-					echo "and set the GID entry for $FINK_PASSWD_USER to an unused"
-					echo "value."
-					echo
-				fi
-			done
-			IFS=$OIFS
-			;;
-	esac
-}
-
-### Verify that update-passwd was called correctly
-
-if [ ! $6 ]; then
-	echo "update-passwd needs 6 arguments:"
+if [ $# -eq 6 ]
+	then GROUPONLY=0
+	name="$1"
+	info="$2"
+	home="$3"
+	shell="$4"
+	groupname="$5"
+	groupmembership="$6" 
+elif [ $# -eq 2 ]
+	then GROUPONLY=1
+	groupname="$1"
+	groupmembership="$2" 
+else
+	echo "update-passwd needs 2 or 6 arguments:"
 	echo
-    echo "update-passwd username info home shell groupname groupmembership"
+    echo "update-passwd [username info home shell] groupname groupmembership"
 	exit 1
 fi
 
+PREFIX=/sw
+
 ### check for existing user
 
-idcheck=`/usr/bin/id $name 2>/dev/null`
-if [ "x$idcheck" = "x" ]; then
-    echo "'$name' user exists, with parameters:"
-    echo
-    echo $idcheck
-    echo
-    echo "Fink will use these settings."
-    ADDUSER=0
-else
-    ADDUSER=1
-fi    
+ADDUSER=0
+echo $GROUPONLY
+if [ $GROUPONLY -eq 0 ] ; then
+	idcheck=`/usr/bin/id $name 2>/dev/null`
+	if [ "x$idcheck" != "x" ]; then
+    	printf "'%s' user exists, with parameters:\n" $name
+    	echo "$idcheck"
+    	printf "Fink will use these settings.\n\n"
+	else
+    	ADDUSER=1
+	fi    
+fi
 
 # check for existing group
 idcheck=`dscl . -read /Groups/$groupname 2>/dev/null`
-if [ "x$idcheck" = "x" ]; then
-    echo "'$groupname' group exists, with parameters:"
-    echo
-    echo $idcheck
-    echo
-    echo "Fink will use these settings."
+if [ "x$idcheck" != "x" ]; then
+    printf "'%s' group exists, with parameters:\n\n" $groupname
+    echo "$idcheck"
+    printf "\nFink will use these settings.\n\n"
     ADDGROUP=0
 else
     ADDGROUP=1
@@ -95,8 +59,8 @@ fi
 
 # We can exit with success if both the user and group are available
 
-if [ [ $ADDUSER -eq 0 ] -a [ $ADDGROUP -eq 0 ] ] ; then
-	printf "Using existing entry for %s\n" $name
+if [ $ADDUSER -eq 0  -a $ADDGROUP -eq 0 ] ; then
+	printf "Using existing entry for '%s' user/group.\n\n" $name
     exit 0
 fi
 
@@ -107,97 +71,110 @@ fi
 uid=0
 gid=0
 # Test passwd.conf
-if [ "x"`grep AutoUid: $PREFIX/etc/passwd.conf` = "x" ] ; then
+if [ "x`grep AutoUid: passwd.conf`" != "x" ] ; then
     #Auto ID
-    uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut d: -f2`
-    uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut d: -f2`
+    uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut -d: -f2`
+    uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut -d: -f2`
     #uid
-    printf "AutoUID is configured.  Locating an unused ID between %d and %d\n" uidmin uidmax
+    printf "AutoUID is configured.  Locating an unused ID between $uidmin and $uidmax.\n\n"
     if [ $ADDUSER -ne 0 ] ; then
-        for test_id in {$uidmin..$uidmax} ; do
-            check_id=`id $test_id 2>/dev/null | grep uid`
-        	if [ "x"$check_id = "x" ] ; then 
-        	    uid=$check_uid
+        for (( test_id=$uidmin; test_id<=$uidmax; test_id++ )) ; do
+            check_id=`/usr/bin/id $test_id 2>/dev/null`
+        	if [ "x$check_id" = "x" ] ; then 
+        	    uid=$test_id
+        	    printf "Using $uid for UID\n"
         	    break
         	fi
         done
-        if [ $uid -eq 0 ] ; then
+        if [ "$uid" = "0" ] ; then
             # bail if we can't allocate a UID
             printf "I couldn't find an unused UID in the range %d - %d.\n" $uidmin $uidmax 
             printf "You can expand this range by changing the AutoUidMin and/or\n"
-            printf "AutoUidMax values in @PREFIX@/etc/passwd.conf .\n"
-            exit 1
+            printf "AutoUidMax values in $PREFIX/etc/passwd.conf .\n\n"
+			printf "##########################################\n\n"
+			printf "Make sure to run 'fink reinstall passwd-%s'\n" $1
+			printf "to install the %s entry, or you can create\n" $1
+			printf "it manually if you would prefer to do that.\n\n"
+			printf "##########################################\n\n"
+			exit 0
         fi
     fi
     
     #gid
     if [ $ADDGROUP -ne 0 ] ; then
-	    for test_id in {$uidmin..$uidmax} ; do
+	    for (( test_id=$uidmin; test_id<=$uidmax; test_id++ )) ; do
     	    check_id=`id $test_id 2>/dev/null | grep gid`
-        	if [ "x"$check_id = "x" ] ; then 
-            	gid=$check_uid
+        	if [ "x$check_id" = "x" ] ; then 
+            	gid=$test_id
+        	    printf "Using $gid for GID\n"
             	break
 	        fi
     	done
-	    if [ $gid -eq 0 ] ; then
+	    if [ "$gid" = "0" ] ; then
     	    # bail if we can't allocate a GID
         	printf "I couldn't find an unused GID in the range %d - %d.\n" $uidmin $uidmax 
             printf "You can expand this range by changing the AutoUidMin and/or\n"
-            printf "AutoUidMax values in @PREFIX@/etc/passwd.conf .\n"
-    	    exit 1
+            printf "AutoUidMax values in $PREFIX/etc/passwd.conf .\n\n"
+			printf "##########################################\n\n"
+			printf "Make sure to run 'fink reinstall passwd-%s'\n" $1
+			printf "to install the %s entry, or you can create\n" $1
+			printf "it manually if you would prefer to do that.\n\n"
+			printf "##########################################\n\n"
+			exit 0
 	    fi
     fi
 else
     #manual entries
-    echo "You are configured to enter UIDs and GIDs manually."
+    printf "You are configured to enter UIDs and GIDs manually.\n"
     # UID
     # read value, check if in use
     unused=0
     until [ $unused -ne 0 ]; do
-    	/bin/echo "Enter a value for the UID: \c"
-        read $test_id
-        check_id=`id $test_id 2>/dev/null | grep uid`
+    	read -p "Enter a value for the UID: " test_id
+        check_id=`/usr/bin/id $test_id 2>/dev/null | grep uid`
+        if [ "x$check_id" != "x" ] ; then 
+            printf "UID %s is use\n" $test_id
+        else
+            unused=1
+            printf "%d is available.  Using it.\n" $test_id
+        	uid=$test_id
+        fi
+    done
+    # GID
+    # read value, check if in use
+    unused=0
+    until [ $unused -ne 0 ]; do
+    	read -p "Enter a value for the GID: " test_id
+        check_id=`id $test_id 2>/dev/null | grep gid`
         if [ "x"$check_id != "x" ] ; then 
             printf "%d is use" $check_id
         else
-            $unused=1
-            print "%d is available.  Using it.\n"
+            unused=1
+            printf "%d is available.  Using it.\n" $test_id
+        	gid=$test_id
         fi
     done
-    
-    #TODO
-	# read value, check if in use.
 fi
 
-echo
-echo "The following user entry will be added to your DirectoryServices database:"
-printf "RecordName: %s\n" $name
-printf "UniqueID: %s\n" $uid
-printf "Primary Group ID: %s\n" $gid
-printf "RealName: %s\n" $info
-printf "NFSHomeDirectory: %s\n" $home
-printf "UserShell: %s\n" $shell
-
-echo
-	echo "Some Fink packages will not work unless these entries are in the"
-	echo "DirectoryServices database. Fink can use existing entries with"
-	echo "these names, however, if they exist on the system, and this package"
-	echo "will check for them."
-	echo "You can also make any desired adjustments to the files"
-	echo "$PREFIX/etc/passwd-fink and $PREFIX/etc/group-fink" 
-	echo "now (from another window), then say yes here."
-	echo "Or you can say no here and add the users and groups manually"
-	echo "(e.g. on your central Open Directory server)." 
-	echo "If you don't know what all of this is about, it is safe to say yes."
-/bin/echo "Do you want to continue? [Y/n] \c"
-read answer
+printf "\nThe following user entry will be added to your DirectoryServices database:\n"
+if [ $GROUPONLY -eq 0 ] ; then
+	printf "RecordName: $name\n"
+	printf "UniqueID: $uid\n"
+	printf "PrimaryGroupID: %s\n" $gid
+	printf "RealName: $info\n" 
+	printf "NFSHomeDirectory: %s\n" $home
+	printf "UserShell: %s\n" $shell
+fi 
+printf "Group Name: %s\n" $groupname
+printf "GroupMembership: %s\n" $groupmembership
+printf "\nYou may experience problems later on if you don't add this information.\n"
+read -p "Add the entry now? [Y/n] " answer
 
 answer=`echo $answer | sed 's/^[yY].*$/y/'`
 
 if [ -z "$answer" -o "x$answer" = "xy" ]; then
-	echo
-	if [ "x$idcheck" = "x" ]; then
-		echo "Merging user info..."	
+	if [ $GROUPONLY -eq 0 ] ; then 
+		printf "\nAdding user info...\n"	
 		dscl . create /users/$name
 		dscl . create /users/$name name $name
 		dscl . create /users/$name passwd '*'
@@ -208,19 +185,21 @@ if [ -z "$answer" -o "x$answer" = "xy" ]; then
 		dscl . create /users/$name shell "$shell"
 		dscl . create /users/$name realname "$info"
 		dscl . delete /users/$name AuthenticationAuthority
-	else
-		echo "$USER user exists, with parameters:"
-		echo
-		echo $idcheck
-		echo
-		echo "Fink will use these."
 	fi
-		echo "Merging group info..."
-		merge_group_info "$PREFIX/etc/group-fink" $USER
-		echo "Done."
-else
-	echo "Okay, not adding the entries."
-fi
-echo
 
+	printf "Adding group info...\n"
+	dscl . create /groups/$groupname
+	dscl . create /groups/$groupname name $groupname
+	dscl . create /groups/$groupname passwd '*'
+	dscl . create /groups/$groupname gid $gid
+	dscl . create /groups/$groupname GroupMembership $groupmembership
+	printf "Done.\n\n"
+else
+	printf "Okay, not adding the entry.\n\n"
+	printf "##########################################\n\n"
+	printf "Either run 'fink reinstall passwd-%s' to repeat\n" $1
+	printf "the install process, or you can install the user/group\n"
+	printf "entries manually if you would prefer to do that.\n\n"
+	printf "##########################################\n\n"
+fi
 exit 0
