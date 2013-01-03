@@ -12,7 +12,7 @@ USAGE:
 This package installs the "update-passwd" script, which takes arguments in the 
 following format:
 
-@PREFIX@/sbin/update-passwd <user name> <description> <home directory> <shell> <group name> <group membership>
+@PREFIX@/sbin/update-passwd [<user name> <description> <home directory> <shell>] <group name> <group membership>
 
 In addition, during the install process the package will check whether fink is
 using an automatic ID range (the default as of fink-0.33.0) and set itself to 
@@ -21,10 +21,15 @@ desired.  This setting is saved in @PREFIX@/etc/passwd.conf.
 
 UID and GID entries for users can be assigned in several ways:
 
-1)  If there is already a matching user and/or group on the system, it/they will be
-regarded as satisfying the requirement.  Examples are:  users/groups installed by 
-previous versions of the passwd-* packages, or deployed via a central directory
-service.  This is true regardless of the @PREFIX@/etc/passwd.conf setting.
+1)  If there is already a matching user and/or group on the system, it/they
+will be regarded as satisfying the requirement of the package that needs them.  
+Examples are:  users/groups installed by previous versions of the passwd-* 
+packages, or deployed via a central directory service.  No action is needed.
 
-2)  If there is no matching user, then the UID and GID will be either generated dynamically
-or via user interaction, depending on the configuration in @PREFIX@/etc/passwd.conf.
+2)  If there is no matching user, then the UID and GID will be either 
+generated dynamically or via operator interaction, depending on the 
+configuration in @PREFIX@/etc/passwd.conf.
+
+If the user entry is not created, either because the operator elected not to
+proceed with a manual install, or if the dynamic allocation range is full,
+the passwd-* package will still be installed.
