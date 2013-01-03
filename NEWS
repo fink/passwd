@@ -1,16 +1,21 @@
-2012xxyy:                                                        
-        	* Modify "update-passwd" script to take more arguments, rather
-        	  than read in the ancient passwd format of the extant conf
-        	  files, now that we're not catting that into niload.
-        	* Put the user/group strings into the user packages.
-            * Modify UID/GID allocation
-            	* Don't overwrite entries for existing users, since we don't
-            	  use the existing static UID/GID numbers for anything anyway.
-                * Stop using 250-299 range, which is subject to use by Apple.
-                * Dynamic by default
-                	* Use information from fink.conf, e.g. to 
-                      pick up network-specific settings.
-                    * Fall back to 600-699 range otherwise.
-                * User override (assuming that fink isn't already set up with
-                  a range) via a prompt rather than editing a config file.
-                
+For a more comprehensive changelog of the latest experimental code, see:
+        https://github.com/fink/passwd/commits/
+
+20130103:                                                        
+    * Modify "update-passwd" script to take more arguments, rather than
+      deal with parsing the passwd file format of the extant %p/etc/passwd-fink
+      and %p/etc/group-fink files, now that we're not catting that into niload.
+      (And even if we decided to support 10.4, we could generate the appropriate 
+      input format for niload from this information.)
+    * Put the user/group strings into the user packages to allow the use of separate
+      .info files to avoid rebuilds of everything when there's an update.
+    * Modify UID/GID allocation
+        * Don't overwrite entries for existing users, since we don't use the existing
+          static UID/GID numbers for anything anyway.
+        * Stop using 250-299 range, which is subject to use by Apple.
+            * Dynamic by default
+                * Use information from fink.conf, e.g. to pick up network-specific
+                  settings.
+                * Fall back to 600-699 range otherwise.
+            * User override (assuming that fink isn't already set up with
+                a range) via a prompt rather than editing a config file.
