@@ -34,7 +34,6 @@ PREFIX=/sw
 ### check for existing user
 
 ADDUSER=0
-echo $GROUPONLY
 if [ $GROUPONLY -eq 0 ] ; then
 	idcheck=`/usr/bin/id $name 2>/dev/null`
 	if [ "x$idcheck" != "x" ]; then
@@ -53,6 +52,9 @@ if [ "x$idcheck" != "x" ]; then
     echo "$idcheck"
     printf "\nFink will use these settings.\n\n"
     ADDGROUP=0
+    # get the gid value in case we're adding additional users
+    # to an existing group.
+    gid=`printf "$idcheck\n" | grep PrimaryGroupID | cut -d: -f2`
 else
     ADDGROUP=1
 fi    
@@ -68,16 +70,15 @@ fi
 
 ### dynamic UID/GID allocation
 
-uid=0
-gid=0
 # Test passwd.conf
-if [ "x`grep AutoUid: passwd.conf`" != "x" ] ; then
+if [[ "`grep AutoUid: passwd.conf`" =~ true ]] ; then
     #Auto ID
     uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut -d: -f2`
     uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut -d: -f2`
     #uid
     printf "AutoUID is configured.  Locating an unused ID between $uidmin and $uidmax.\n\n"
     if [ $ADDUSER -ne 0 ] ; then
+    	uid=0
         for (( test_id=$uidmin; test_id<=$uidmax; test_id++ )) ; do
             check_id=`/usr/bin/id $test_id 2>/dev/null`
         	if [ "x$check_id" = "x" ] ; then 
@@ -102,8 +103,9 @@ if [ "x`grep AutoUid: passwd.conf`" != "x" ] ; then
     
     #gid
     if [ $ADDGROUP -ne 0 ] ; then
+    	gid=0
 	    for (( test_id=$uidmin; test_id<=$uidmax; test_id++ )) ; do
-    	    check_id=`id $test_id 2>/dev/null | grep gid`
+    	    check_id=`/usr/bin/id $test_id 2>/dev/null`
         	if [ "x$check_id" = "x" ] ; then 
             	gid=$test_id
         	    printf "Using $gid for GID\n"
@@ -131,9 +133,11 @@ else
     unused=0
     until [ $unused -ne 0 ]; do
     	read -p "Enter a value for the UID: " test_id
-        check_id=`/usr/bin/id $test_id 2>/dev/null | grep uid`
-        if [ "x$check_id" != "x" ] ; then 
-            printf "UID %s is use\n" $test_id
+        check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f1`
+        if [ "x$check_id" != "x" ]
+            then printf "UID %s is use\n" $test_id
+        elif [[ ! $test_id =~ ^[0-9]+$ ]]
+        	then printf "UID must be a positive integer.\n"
         else
             unused=1
             printf "%d is available.  Using it.\n" $test_id
@@ -145,9 +149,11 @@ else
     unused=0
     until [ $unused -ne 0 ]; do
     	read -p "Enter a value for the GID: " test_id
-        check_id=`id $test_id 2>/dev/null | grep gid`
-        if [ "x"$check_id != "x" ] ; then 
-            printf "%d is use" $check_id
+        check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f2`
+        if [ "x"$check_id != "x" ]
+        	then printf "%d is use" $check_id
+        elif [[ ! $test_id =~ ^[0-9]+$ ]]
+        	then printf "GID must be a positive integer.\n"
         else
             unused=1
             printf "%d is available.  Using it.\n" $test_id
@@ -157,7 +163,7 @@ else
 fi
 
 printf "\nThe following user entry will be added to your DirectoryServices database:\n"
-if [ $GROUPONLY -eq 0 ] ; then
+if [ $ADDUSER -ne 0 ] ; then
 	printf "RecordName: $name\n"
 	printf "UniqueID: $uid\n"
 	printf "PrimaryGroupID: %s\n" $gid
@@ -165,15 +171,17 @@ if [ $GROUPONLY -eq 0 ] ; then
 	printf "NFSHomeDirectory: %s\n" $home
 	printf "UserShell: %s\n" $shell
 fi 
-printf "Group Name: %s\n" $groupname
-printf "GroupMembership: %s\n" $groupmembership
-printf "\nYou may experience problems later on if you don't add this information.\n"
+if [ $ADDGROUP -ne 0 ] ; then
+	printf "Group Name: %s\n" $groupname
+	printf "GroupMembership: %s\n" $groupmembership
+	printf "\nYou may experience problems later on if you don't add this information.\n"
+fi
 read -p "Add the entry now? [Y/n] " answer
 
 answer=`echo $answer | sed 's/^[yY].*$/y/'`
 
 if [ -z "$answer" -o "x$answer" = "xy" ]; then
-	if [ $GROUPONLY -eq 0 ] ; then 
+	if [ $ADDUSER -ne 0 ] ; then 
 		printf "\nAdding user info...\n"	
 		dscl . create /users/$name
 		dscl . create /users/$name name $name
@@ -186,13 +194,14 @@ if [ -z "$answer" -o "x$answer" = "xy" ]; then
 		dscl . create /users/$name realname "$info"
 		dscl . delete /users/$name AuthenticationAuthority
 	fi
-
-	printf "Adding group info...\n"
-	dscl . create /groups/$groupname
-	dscl . create /groups/$groupname name $groupname
-	dscl . create /groups/$groupname passwd '*'
-	dscl . create /groups/$groupname gid $gid
-	dscl . create /groups/$groupname GroupMembership $groupmembership
+	if [ $ADDGROUP -ne 0 ] ; then 
+		printf "Adding group info...\n"
+		dscl . create /groups/$groupname
+		dscl . create /groups/$groupname name $groupname
+		dscl . create /groups/$groupname passwd '*'
+		dscl . create /groups/$groupname gid $gid
+		dscl . create /groups/$groupname GroupMembership $groupmembership
+	fi
 	printf "Done.\n\n"
 else
 	printf "Okay, not adding the entry.\n\n"
