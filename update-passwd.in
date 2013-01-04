@@ -71,7 +71,7 @@ fi
 ### dynamic UID/GID allocation
 
 # Test passwd.conf
-if [[ "`grep AutoUid: passwd.conf`" =~ true ]] ; then
+if [[ "`grep AutoUid: $PREFIX/etc/passwd.conf`" =~ true ]] ; then
     #Auto ID
     uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut -d: -f2`
     uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut -d: -f2`
