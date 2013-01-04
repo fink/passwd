@@ -73,8 +73,8 @@ fi
 # Test passwd.conf
 if [[ "`grep AutoUid: $PREFIX/etc/passwd.conf`" =~ true ]] ; then
     #Auto ID
-    uidmin=`grep AutoUidMin $PREFIX/etc/passwd.conf | cut -d: -f2`
-    uidmax=`grep AutoUidMax $PREFIX/etc/passwd.conf | cut -d: -f2`
+    uidmin=`grep AutoUidMin: $PREFIX/etc/passwd.conf | cut -d: -f2`
+    uidmax=`grep AutoUidMax: $PREFIX/etc/passwd.conf | cut -d: -f2`
     #uid
     printf "AutoUID is configured.  Locating an unused ID between $uidmin and $uidmax.\n\n"
     if [ $ADDUSER -ne 0 ] ; then
