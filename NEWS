@@ -17,5 +17,7 @@ For a more comprehensive changelog of the latest experimental code, see:
                 * Use information from fink.conf, e.g. to pick up network-specific
                   settings.
                 * Fall back to 600-699 range otherwise.
+                * Current behavior is just to check UIDs, even when allocating
+                  GIDs.
             * User override (assuming that fink isn't already set up with
                 a range) via a prompt rather than editing a config file.
