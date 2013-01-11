@@ -1,6 +1,17 @@
 For a more comprehensive changelog of the latest experimental code, see:
         https://github.com/fink/passwd/commits/
 
+20130111:
+	* Be kinder to folks who had been manually setting configurations via 
+	  %p/etc/passwd-fink and %p/etc/group-fink.
+	  * Install those in the 'passwd-configs' package (now an unversioned
+	    dependency) so that we don't have to update passwd-core when we update
+	    these files if we don't want to.
+	    (Using appropriate tags in the git repo should allow this to happen.)
+	  * Have update-passwd look in those scripts if %p/etc/passwd.conf is
+	    set for AutoUid: false and use those values.
+	  * If a user/group isn't present, fall back to manual entry.
+
 20130103:                                                        
     * Modify "update-passwd" script to take more arguments, rather than
       deal with parsing the passwd file format of the extant %p/etc/passwd-fink

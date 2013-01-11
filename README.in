@@ -1,7 +1,8 @@
 Passwd-core package for the Fink Project
 http://www.finkproject.org/
 
-The package passwd-core and its associated splitoffs are in the Public Domain.
+The package passwd-core and its associated splitoffs and related .info files
+are in the Public Domain.
 
 This package provides a unified method by which several administrative user
 and group entries can be added to your user database by the various "passwd-*"
@@ -27,9 +28,25 @@ Examples are:  users/groups installed by previous versions of the passwd-*
 packages, or deployed via a central directory service.  No action is needed.
 
 2)  If there is no matching user, then the UID and GID will be either 
-generated dynamically or via operator interaction, depending on the 
-configuration in @PREFIX@/etc/passwd.conf.
+generated dynamically or via the administrator's design, depending on whether 
+the AutoUid entry in @PREFIX@/etc/passwd.conf is "true" or "false".  
 
-If the user entry is not created, either because the operator elected not to
-proceed with a manual install, or if the dynamic allocation range is full,
-the passwd-* package will still be installed.
+In the latter case, the files @PREFIX@/etc/passwd-fink and @PREFIX@/etc/group-fink
+from the 'passwd-configs' package will first be queried for UID and GID values.
+The administrator may edit these files to set up desired UID and GID values for
+the system.  If the user is not present in those files (e.g. a new user package
+was added to Fink and passwd-configs hasn't been updated yet), then the 
+administrator will be prompted to enter values manually.
+
+If the user entry is not created, either because the administrator elected not to
+proceed with the install, or if the dynamic allocation range is full,
+the passwd-* package will still be installed.  In such a case, we advise the
+administrator to resolve the situation to make sure the user/group exists via one
+of these methods:
+* Change the dynamic allocation range and run 'fink reinstall passwd-<user>' if
+  dynamic UID/GID allocation is in use.
+* Edit @PREFIX@/etc/passwd-fink and @PREFIX@/etc/group-fink to include the desired UID/GID
+  values and run 'fink reinstall passwd-<user>' if dynamic allocation isn't being
+  used.  
+* Get the user/group from a central directory server.
+* Create the entries manually.
