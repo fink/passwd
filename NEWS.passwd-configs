@@ -1,0 +1,6 @@
+For a more comprehensive changelog of the latest experimental code, see:
+        https://github.com/fink/passwd/commits/
+
+20130110: Initial release of passwd-configs, containing entries and default
+		  IDs in the "safe" range for the passwd-users in existence on this
+		  date.

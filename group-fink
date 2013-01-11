@@ -1,0 +1,35 @@
+#
+# Fink group additions
+#
+# IDs are in the range 600..699
+#
+# commented out entries are provided by the system and assumed by fink
+#
+#lp:*:26:
+#postfix:*:27:
+#postdrop:*:28:
+#qtss:*:76:
+#mailman:*:78:
+#clamav:*:82:
+#jabber:*:84:
+
+news:*:601:news
+postgres:*:602:postgres
+games:*:603:games
+canna:*:604:canna
+maildrop:*:606:maildrop
+tomcat:*:607:tomcat
+opennms:*:609:opennms
+distcc:*:612:distcc,root
+messagebus:*:613:messagebus
+icecast:*:614:icecast
+gdm:*:615:gdm
+ossec:*:617:ossec,ossecm,ossece,ossecr
+rt:*:621:rt
+dovecot:*:622:dovecot
+haldaemon:*:623:haldaemon
+avahi:*:624:avahi
+# nagios used by nagios or icinga
+nagios:*:625:nagios
+# amqp used by rabbitmq-server
+amqp:*:626:amqp
