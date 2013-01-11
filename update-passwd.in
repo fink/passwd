@@ -127,39 +127,65 @@ if [[ "`grep AutoUid: $PREFIX/etc/passwd.conf`" =~ true ]] ; then
     fi
 else
     #manual entries
-    printf "You are configured to enter UIDs and GIDs manually.\n"
     # UID
-    # read value, check if in use
-    unused=0
-    until [ $unused -ne 0 ]; do
-    	read -p "Enter a value for the UID: " test_id
-        check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f1`
-        if [ "x$check_id" != "x" ]
-            then printf "UID %s is use\n" $test_id
-        elif [[ ! $test_id =~ ^[0-9]+$ ]]
-        	then printf "UID must be a positive integer.\n"
-        else
-            unused=1
-            printf "%d is available.  Using it.\n" $test_id
-        	uid=$test_id
-        fi
-    done
+    if [ $ADDUSER -ne 0 ] ; then
+    	unused=0
+    	printf "Looking for $name entry in $PREFIX/etc/passwd-fink..."
+		stuff=`grep $name: $PREFIX/etc/passwd-fink 2>/dev/null`
+		if [ ! -z "$stuff" ] ; then
+			test_id=`echo $stuff | cut -d: -f3`
+			printf "found.\n"
+		else
+			printf "No entry for $name in $PREFIX/etc/passwd-fink\n"
+			printf "Enter a value manually.\n"
+    		# read value, check if in use
+    		read -p "Enter a value for the UID: " test_id
+    	fi
+ 		until [ $unused -ne 0 ]; do
+        	check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f1`
+        	if [ "x$check_id" != "x" ]
+            	then printf "UID %s is use.\n" $test_id
+    			read -p "Enter a value for the UID: " test_id
+        	elif [[ ! $test_id =~ ^[0-9]+$ ]]
+        		then printf "UID must be a positive integer.\n"
+    			read -p "Enter a value for the UID: " test_id
+        	else
+            	unused=1
+            	printf "%d is available.  Using that for the UID.\n" $test_id
+        		uid=$test_id
+        	fi
+    	done
+    fi
     # GID
     # read value, check if in use
-    unused=0
-    until [ $unused -ne 0 ]; do
-    	read -p "Enter a value for the GID: " test_id
-        check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f2`
-        if [ "x"$check_id != "x" ]
-        	then printf "%d is use" $check_id
-        elif [[ ! $test_id =~ ^[0-9]+$ ]]
-        	then printf "GID must be a positive integer.\n"
-        else
-            unused=1
-            printf "%d is available.  Using it.\n" $test_id
-        	gid=$test_id
-        fi
-    done
+	if [ $ADDGROUP -ne 0 ] ; then
+    	unused=0
+    	printf "Looking for $groupname entry in $PREFIX/etc/group-fink..."
+    	stuff=`grep $groupname: $PREFIX/etc/group-fink 2>/dev/null`
+		if [ ! -z "$stuff" ] ; then
+			printf "found.\n"
+			test_id=`echo $stuff | cut -d: -f3`
+		else
+			printf "No entry for $name in $PREFIX/etc/group-fink\n"
+			printf "Enter a value manually.\n"
+    		# read value, check if in use
+     		read -p "Enter a value for the GID: " test_id
+     	fi
+    	until [ $unused -ne 0 ]; do
+       		check_id=`/usr/bin/id $test_id 2>/dev/null | cut -d\  -f2`
+        	if [ "x"$check_id != "x" ]
+        		then printf "%d is use" $check_id
+    			read -p "Enter a value for the GID: " test_id
+        	elif [[ ! $test_id =~ ^[0-9]+$ ]]
+        		then printf "GID must be a positive integer.\n"
+	    		read -p "Enter a value for the GID: " test_id
+        	else
+            	unused=1
+            	printf "%d is available.  Using that for the GID.\n" $test_id
+        		gid=$test_id
+        	fi
+    	done
+    fi
 fi
 
 printf "\nThe following user entry will be added to your DirectoryServices database:\n"
