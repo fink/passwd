@@ -1,9 +1,11 @@
 For a more comprehensive changelog of the latest experimental code, see:
         https://github.com/fink/passwd/commits/
 
-20130929
+20131103
+	* Bugfix: PREFIX got hardcoded to /sw accidentally.
 	* Bugfix: try to make sure that we're not grep'ing in the comments or matching
 	  other than full names in passwd-fink and group-fink.
+
 
 20130111:
 	* Be kinder to folks who had been manually setting configurations via 
