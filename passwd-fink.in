@@ -7,6 +7,8 @@
 # 
 # note that the cyrusimap user was previously called cyrus by fink
 #
+# Future entries must have no leading spaces
+#
 #lp:*:26:26::0:0:Printing Services:/var/spool/cups:/dev/null
 #postfix:*:27:27::0:0:postfix:/var/spool/postfix:/bin/false
 #eppc:*:71:71::0:0:Apple Events User:/var/empty:/usr/bin/false

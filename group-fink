@@ -5,6 +5,8 @@
 #
 # commented out entries are provided by the system and assumed by fink
 #
+# future entries must have no leading spaces
+#
 #lp:*:26:
 #postfix:*:27:
 #postdrop:*:28:

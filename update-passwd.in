@@ -131,7 +131,7 @@ else
     if [ $ADDUSER -ne 0 ] ; then
     	unused=0
     	printf "Looking for $name entry in $PREFIX/etc/passwd-fink..."
-		stuff=`grep '\b$name:' $PREFIX/etc/passwd-fink 2>/dev/null | grep -v '#'`
+		stuff=`grep "^$name:" $PREFIX/etc/passwd-fink 2>/dev/null`
 		if [ ! -z "$stuff" ] ; then
 			test_id=`echo $stuff | cut -d: -f3`
 			printf "found.\n"
@@ -161,7 +161,7 @@ else
 	if [ $ADDGROUP -ne 0 ] ; then
     	unused=0
     	printf "Looking for $groupname entry in $PREFIX/etc/group-fink..."
-    	stuff=`grep \b$groupname: $PREFIX/etc/group-fink 2>/dev/null | grep -v '#'`
+    	stuff=`grep "^$groupname:" $PREFIX/etc/group-fink 2>/dev/null`
 		if [ ! -z "$stuff" ] ; then
 			printf "found.\n"
 			test_id=`echo $stuff | cut -d: -f3`
