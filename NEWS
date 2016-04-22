@@ -1,6 +1,10 @@
 For a more comprehensive changelog of the latest experimental code, see:
         https://github.com/fink/passwd/commits/
 
+20160421
+	* Add entries for quagga and redis to avoid forcing people to set their UIDs/GIDs 
+	  manually.
+
 20131113
 	* Bugfix:  prior match wasn't implemented well.  That's now fixed.
 
