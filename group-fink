@@ -35,3 +35,5 @@ avahi:*:624:avahi
 nagios:*:625:nagios
 # amqp used by rabbitmq-server
 amqp:*:626:amqp
+quagga:*:627:quagga
+redis:*:628:redis
