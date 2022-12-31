@@ -43,4 +43,4 @@ amqp:*:626:626::0:0:AMQP Messaging Daemon:/dev/null:/dev/null
 # On 10.5:
 dovecot:*:622:622::0:0:Dovecot IMAP Server Daemon:/dev/null:/dev/null
 quagga:*:627:627::0:0:Quagga Daemon:@PREFIX@/var/quagga:/usr/bin/false
-redis:*:628:628::0:0:Redis Key-Value Store Server:@PREFIX@var/db/redis:/dev/null
+redis:*:628:628::0:0:Redis Key-Value Store Server:@PREFIX@/var/db/redis:/dev/null
