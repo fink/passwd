@@ -25,16 +25,16 @@ news:*:601:601::0:0:News Server:/dev/null:/dev/null
 postgres:*:602:602::0:0:PostgreSQL Database Server:/var/empty:/dev/null
 games:*:603:603::0:0:Game Files Owner:/dev/null:/dev/null
 canna:*:604:604::0:0:Canna Japanese Input Server:/dev/null:/dev/null
-tomcat:*:607:607::0:0:Tomcat Servlet Engine:@PREFIX@/var/empty:/usr/bin/false
-opennms:*:609:609::0:0:OpenNMS Network Management:@PREFIX@/var/opennms:/dev/null
-distcc:*:612:612::0:0:distcc daemon,,,:@PREFIX@/var/spool/distcc:/dev/null
-messagebus:*:613:613::0:0:messagebus (dbus) daemon,,,:@PREFIX@/var/run/dbus:/dev/null
+tomcat:*:607:607::0:0:Tomcat Servlet Engine:&&PRFIX&&/var/empty:/usr/bin/false
+opennms:*:609:609::0:0:OpenNMS Network Management:&&PRFIX&&/var/opennms:/dev/null
+distcc:*:612:612::0:0:distcc daemon,,,:&&PRFIX&&/var/spool/distcc:/dev/null
+messagebus:*:613:613::0:0:messagebus (dbus) daemon,,,:&&PRFIX&&/var/run/dbus:/dev/null
 icecast:*:614:614::0:0:Icecast Server:/var/empty:/usr/bin/false
 gdm:*:615:615::0:0:gdm Login GUI priv-sep:/var/empty:/usr/bin/false
-ossec:*:617:617::0:0:OSSec HIDS Monitor Daemon:@PREFIX@/var/ossec:/usr/bin/false
-ossecm:*:618:617::0:0:OSSec HIDS Mail Daemon:@PREFIX@/var/ossec:/usr/bin/false
-ossece:*:619:617::0:0:OSSec HIDS Daemon:@PREFIX@/var/ossec:/usr/bin/false
-ossecr:*:620:617::0:0:OSSec HIDS Remote Daemon:@PREFIX@/var/ossec:/usr/bin/false
+ossec:*:617:617::0:0:OSSec HIDS Monitor Daemon:&&PRFIX&&/var/ossec:/usr/bin/false
+ossecm:*:618:617::0:0:OSSec HIDS Mail Daemon:&&PRFIX&&/var/ossec:/usr/bin/false
+ossece:*:619:617::0:0:OSSec HIDS Daemon:&&PRFIX&&/var/ossec:/usr/bin/false
+ossecr:*:620:617::0:0:OSSec HIDS Remote Daemon:&&PRFIX&&/var/ossec:/usr/bin/false
 rt:*:621:621::0:0:Request Tracker:/dev/null:/dev/null
 haldaemon:*:623:623::0:0:Hardware Abstraction Layer Daemon:/dev/null:/dev/null
 avahi:*:624:624::0:0:Service Discovery Daemon:/dev/null:/dev/null
@@ -42,6 +42,6 @@ nagios:*:625:625::0:0:Nagios and Icinga Monitoring Daemon:/dev/null:/dev/null
 amqp:*:626:626::0:0:AMQP Messaging Daemon:/dev/null:/dev/null
 # On 10.5:
 dovecot:*:622:622::0:0:Dovecot IMAP Server Daemon:/dev/null:/dev/null
-quagga:*:627:627::0:0:Quagga Daemon:@PREFIX@/var/quagga:/usr/bin/false
-redis:*:628:628::0:0:Redis Key-Value Store Server:@PREFIX@/var/db/redis:/dev/null
-man:*:629:629::0:0:man:@PREFIX@/var/cache/man:/sbin/nologin
+quagga:*:627:627::0:0:Quagga Daemon:&&PRFIX&&/var/quagga:/usr/bin/false
+redis:*:628:628::0:0:Redis Key-Value Store Server:&&PRFIX&&/var/db/redis:/dev/null
+man:*:629:629::0:0:man:&&PRFIX&&/var/cache/man:/sbin/nologin
