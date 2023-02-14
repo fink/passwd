@@ -84,7 +84,7 @@ update-passwd.html: update-passwd.asciidoc
 # Authors
 auth: AUTHORS.txt
 
-AUTHORS.txt: .mailmap update-passwd.cache
+AUTHORS.txt: .mailmap passwd.cache
 	git log --format='%aN <%aE>' | sort -f | uniq -c | sort -rn | sed 's:^ *[0-9]* *::' > AUTHORS.txt
 
 passwd.sed: passwd.cache
