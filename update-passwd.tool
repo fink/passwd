@@ -208,7 +208,7 @@ function gidNumber () {
 # Usage message.
 function upUsage () {
 	tee >&2 << EOF
-usage:	update-passwd -n {Short-Name} -g <Group-Name> [-h <Home-Dir>] [-s <Shell>] -i <Info-String> -m <Group-Members>
+usage:	update-passwd -n <Short-Name> -g <Group-Name> [-h <Home-Dir>] [-s <Shell>] -i <Info-String> -m <Group-Members>
 	update-passwd -g <Group-Name> -m <Group-Members>
 	update-passwd -V
 
