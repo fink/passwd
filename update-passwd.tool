@@ -213,13 +213,12 @@ usage:	update-passwd -n <Short-Name> -g <Group-Name> [-h <Home-Dir>] [-s <Shell>
 	update-passwd -V
 
 	Options include:
-	-t short-name		= User short name
-	-g Group-Name		= Name of (primary) group
-	-o cache-file		= specify cache file location
-	-h Home-Dir		= Home directory path (optional)
-	-s Shell		= Path to login shell (optional)
-	-i Info-String		= Long discription of user
-	-m Group-Members	= A list of group membersips by name
+	-n short-name		= User short name
+	-g group-name		= Name of (primary) group
+	-h home-dir		= Home directory path (optional)
+	-s shell		= Path to login shell (optional)
+	-i info-string		= Long discription of user
+	-m group-members	= A list of group membersips by name
 	-V			= emit version and exit
 	-?			= help message
 EOF
