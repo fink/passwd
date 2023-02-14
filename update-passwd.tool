@@ -14,14 +14,6 @@ if [ "${DarwinVersion}" -ge "${sysadminctlVersion}" ]; then
 	sysadminctlVersionRun="1"
 fi
 
-if [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f "2")" = "true" ]; then
-	uidMin="$(grep '^AutoUidMin:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
-	uidMax="$(grep '^AutoUidMax:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
-elif [ -f "${prefixPath}/etc/passwd-fink.conf" ] && [ -f "${prefixPath}/etc/group-fink.conf" ]; then
-	fixedUserFink="${prefixPath}/etc/passwd-fink.conf"
-	fixedGroupFink="${prefixPath}/etc/group-fink.conf"
-fi
-
 
 
 # Use sysadminctl for primary user creation
@@ -141,7 +133,7 @@ function uidNumber () {
 
 	# No uid found
 	if [ -z "${_uid}" ]; then
-		tee >&2 << -EOF
+		tee >&2 <<- EOF
 			I could not find an unused UID in the range ${uidMin} - ${uidMax}.
 			You can expand this range by changing the AutoUidMin and/or
 			AutoUidMax values in ${prefixPath}/etc/passwd.conf.
@@ -157,7 +149,7 @@ function uidNumber () {
 		EOF
 		exit 1
 	elif /usr/bin/id -u "${_uid}" 2&>/dev/null; then
-		tee >&2 << -EOF
+		tee >&2 <<- EOF
 			UID ${_uid} is already in use
 		EOF
 		exit 1
@@ -187,7 +179,7 @@ function gidNumber () {
 
 	# No gid found
 	if [ -z "${_gid}" ]; then
-		tee >&2 << -EOF
+		tee >&2 <<- EOF
 			I could not find an unused GID in the range ${uidMin} - ${uidMax}.
 			You can expand this range by changing the AutoUidMin and/or
 			AutoUidMax values in ${prefixPath}/etc/passwd.conf.
@@ -203,7 +195,7 @@ function gidNumber () {
 		EOF
 		exit 1
 	elif dscl . list /Groups PrimaryGroupID | grep -q "${_gid}" 2&>/dev/null; then
-		tee >&2 << -EOF
+		tee >&2 <<- EOF
 			GID ${_gid} is already in use
 		EOF
 		exit 1
@@ -316,6 +308,17 @@ else
 	upUsage
 fi
 
+
+# Set the operating mode
+if [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f "2")" = "true" ]; then
+	uidMin="$(grep '^AutoUidMin:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
+	uidMax="$(grep '^AutoUidMax:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
+elif [ -f "${prefixPath}/etc/passwd-fink.conf" ] && [ -f "${prefixPath}/etc/group-fink.conf" ]; then
+	fixedUserFink="${prefixPath}/etc/passwd-fink.conf"
+	fixedGroupFink="${prefixPath}/etc/group-fink.conf"
+fi
+
+
 # Make an array of the members list
 # membersList=($(echo "${MEMBERS}" | tr ' ' '\n'))
 
@@ -332,7 +335,7 @@ elif [ "${opMode}" = "user" ]; then
 		gidNumber="$(gidNumber "${GROUPNAME}")"
 		sysadminctlUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	else
-		gidNumber="(gidNumber "${GROUPNAME}")"
+		gidNumber="$(gidNumber "${GROUPNAME}")"
 		dsclUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	fi
 fi

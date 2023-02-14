@@ -134,7 +134,7 @@ clean:
 
 # Not safe to run in a tarball
 devclean: clean
-	rm -f update-passwd.cache
+	rm -f passwd.cache
 	rm -f AUTHORS AUTHORS.txt
 	rm -f *.orig ./*/*.orig
 
