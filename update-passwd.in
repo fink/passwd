@@ -11,16 +11,16 @@ if [ "$(/usr/bin/id -u)" -ne "0" ]; then
 	exit 1
 fi
 
-if [ "${#}" -eq "6" ]
-	then GROUPONLY="0"
+if [ "${#}" -eq "6" ]; then
+	GROUPONLY="0"
 	name="${1}"
 	info="${2}"
 	home="${3}"
 	shell="${4}"
 	groupname="${5}"
 	groupmembership="${6}"
-elif [ "${#}" -eq "2" ]
-	then GROUPONLY="1"
+elif [ "${#}" -eq "2" ]; then
+	GROUPONLY="1"
 	groupname="${1}"
 	groupmembership="${2}"
 else
