@@ -17,7 +17,7 @@ This program is meant to be used by the fink package manager to setup necessary
 users and groups for other packages.  It is meant to be called by independent
 packages for each user/group.
 
-By default it reuse any existing users/groups on the system that match the
+By default it reuses any existing users/groups on the system that match the
 calling requirements.  This includes adding aliases for close matches such as
 `<user/group>` -> `_<user/group>`.  If a matching user/group is not found it
 will create one with dynamically allocated ids as specified in the `passwd.conf`
