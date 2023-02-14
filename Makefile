@@ -48,6 +48,9 @@ EXTRA_DIST = \
 	AUTHORS.txt \
 	passwd.cache
 
+TEXT_PRODUCTS = \
+	update-passwd.1
+
 all : cmd man conf
 
 # The config files
@@ -107,7 +110,7 @@ passwd-$(VERS).tgz.sig: tarball
 # The actual tarball
 passwd-$(VERS).tgz: $(SOURCES) all auth
 	mkdir passwd-$(VERS)
-	cp -pR $(SOURCES) $(EXTRA_DIST) passwd-$(VERS)/
+	cp -pR $(SOURCES) $(EXTRA_DIST) $(TEXT_PRODUCTS) passwd-$(VERS)/
 	@COPYFILE_DISABLE=1 GZIP=-n9 tar -czf passwd-$(VERS).tgz --exclude=".DS_Store" passwd-$(VERS)
 	rm -fr passwd-$(VERS)
 
