@@ -321,6 +321,26 @@ fi
 # Make an array of the members list
 # membersList=($(echo "${MEMBERS}" | tr ' ' '\n'))
 
+
+
+# Setup group
+if dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID; then
+	echo "${GROUPNAME} exists."
+elif dscl . -read "/groups/_${GROUPNAME}" PrimaryGroupID; then
+	echo "_${SHORTNAME} exists; creating alias..."
+	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
+	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
+else
+	: "${gidNumber:="$(gidNumber "${GROUPNAME}")"}"
+	if [ "${sysadminctlVersionRun}" = "1" ]; then
+		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
+	else
+		dsclGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
+	fi
+fi
+
+
+
 # Setup user
 echo "Checking to see if the user ${SHORTNAME} exists:"
 if [ "${opMode}" = "user" ] && dscl . -read "/users/${SHORTNAME}" UniqueID; then
@@ -330,34 +350,13 @@ elif [ "${opMode}" = "user" ] && dscl . -read "/users/_${SHORTNAME}" UniqueID; t
 	userAlias "_${SHORTNAME}" "${SHORTNAME}"
 elif [ "${opMode}" = "user" ]; then
 	echo "${SHORTNAME} does not exist; creating..."
+	gidNumber="$(gidNumber "${GROUPNAME}")"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
-		gidNumber="$(gidNumber "${GROUPNAME}")"
 		sysadminctlUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	else
-		gidNumber="$(gidNumber "${GROUPNAME}")"
 		dsclUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	fi
 fi
-
-
-# Setup group
-if dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID; then
-	echo "${GROUPNAME} exists."
-elif dscl . -read "/groups/_${GROUPNAME}" PrimaryGroupID; then
-	echo "_${SHORTNAME} exists; creating alias..."
-	userAlias "_${GROUPNAME}" "${GROUPNAME}"
-	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
-else
-	if [ "${sysadminctlVersionRun}" = "1" ]; then
-		: "${gidNumber:="$(gidNumber)"}"
-		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
-	else
-		: "${gidNumber:="$(gidNumber)"}"
-		dsclGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
-	fi
-fi
-
-
 
 
 
