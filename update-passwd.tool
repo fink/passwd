@@ -331,7 +331,7 @@ elif dscl . -read "/groups/_${GROUPNAME}" PrimaryGroupID; then
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
 else
-	: "${gidNumber:="$(gidNumber "${GROUPNAME}")"}"
+	gidNumber="$(gidNumber "${GROUPNAME}")"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
 	else
@@ -350,7 +350,7 @@ elif [ "${opMode}" = "user" ] && dscl . -read "/users/_${SHORTNAME}" UniqueID; t
 	userAlias "_${SHORTNAME}" "${SHORTNAME}"
 elif [ "${opMode}" = "user" ]; then
 	echo "${SHORTNAME} does not exist; creating..."
-	gidNumber="$(gidNumber "${GROUPNAME}")"
+	: "${gidNumber="$(dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID | cut -d ' ' -f '2')"}"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		sysadminctlUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	else
