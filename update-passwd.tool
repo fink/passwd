@@ -324,10 +324,11 @@ fi
 
 
 # Setup group
+echo "Checking to see if the grooup ${GROUPNAME} exists:"
 if dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID; then
 	echo "${GROUPNAME} exists."
 elif dscl . -read "/groups/_${GROUPNAME}" PrimaryGroupID; then
-	echo "_${SHORTNAME} exists; creating alias..."
+	echo "_${GROUPNAME} exists; creating alias..."
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
 else
@@ -342,7 +343,9 @@ fi
 
 
 # Setup user
-echo "Checking to see if the user ${SHORTNAME} exists:"
+if [ "${opMode}" = "user" ]; then
+	echo "Checking to see if the user ${SHORTNAME} exists:"
+fi
 if [ "${opMode}" = "user" ] && dscl . -read "/users/${SHORTNAME}" UniqueID; then
 	echo "${SHORTNAME} exists."
 elif [ "${opMode}" = "user" ] && dscl . -read "/users/_${SHORTNAME}" UniqueID; then
