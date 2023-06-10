@@ -9,7 +9,7 @@
 prefixPath="&&PRFIX&&"
 
 DarwinVersion="$(uname -r | cut -d. -f1)"
-sysadminctlVersion="17"
+sysadminctlVersion="17" # macOS 10.13
 if [ "${DarwinVersion}" -ge "${sysadminctlVersion}" ]; then
 	sysadminctlVersionRun="1"
 fi
