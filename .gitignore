@@ -5,6 +5,7 @@
 /*.1.gz
 /*.tgz
 /*.md5
+/*.sha256
 /*.sig
 /logo.svg
 /update-passwd.sed

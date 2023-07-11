@@ -94,7 +94,7 @@ passwd.sed: passwd.cache
 	autorevision -f -t sed -o $< > $@
 
 # The tarball signed and sealed
-dist: tarball passwd-$(VERS).tgz.md5 passwd-$(VERS).tgz.sig
+dist: tarball passwd-$(VERS).tgz.md5 passwd-$(VERS).tgz.sha256 passwd-$(VERS).tgz.sig
 
 # The tarball
 tarball: passwd-$(VERS).tgz
@@ -102,6 +102,11 @@ tarball: passwd-$(VERS).tgz
 # Make an md5 checksum
 passwd-$(VERS).tgz.md5: tarball
 	$(MD5) passwd-$(VERS).tgz > passwd-$(VERS).tgz.md5
+
+# Make an sha256 checksum
+passwd-$(VERS).tgz.sha256: tarball
+	shasum -a 256 passwd-$(VERS).tgz > passwd-$(VERS).tgz.sha256
+	cat passwd-$(VERS).tgz.sha256
 
 # Make a detached gpg sig
 passwd-$(VERS).tgz.sig: tarball
