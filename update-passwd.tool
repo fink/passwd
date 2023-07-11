@@ -291,6 +291,7 @@ if [ "$(/usr/bin/id -u)" -ne "0" ]; then
 	exit 1
 fi
 
+# Set the operating mode
 if [ ! -z "${SHORTNAME}" ]; then
 	opMode="user"
 	: "${HOME:="/var/empty"}"
@@ -308,7 +309,7 @@ else
 fi
 
 
-# Set the operating mode
+# Decide if ids are static or dynamic
 if [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f "2")" = "true" ]; then
 	uidMin="$(grep '^AutoUidMin:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
 	uidMax="$(grep '^AutoUidMax:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
