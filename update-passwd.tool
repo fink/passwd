@@ -168,7 +168,7 @@ function gidNumber () {
 	elif [ ! -z "${uidMin}" ]; then
 		local testGid="${uidMin}"
 		while [ "${testGid}" -le "${uidMax}" ]; do
-			if [ -z "$(dscacheutil -q group -a gid ${testUid} 2> /dev/null)" ]; then
+			if [ ! -z "$(dscacheutil -q group -a gid ${testUid} 2> /dev/null)" ]; then
 				testGid="$((testGid + 1))"
 			else
 				_gid="${testGid}"
