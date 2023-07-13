@@ -168,7 +168,7 @@ function gidNumber () {
 	elif [ ! -z "${uidMin}" ]; then
 		local testGid="${uidMin}"
 		while [ "${testGid}" -le "${uidMax}" ]; do
-			if dscl . list /Groups PrimaryGroupID | grep -q "${testUid}" 2&>/dev/null; then
+			if [ -z "$(dscacheutil -q group -a gid ${testUid} 2> /dev/null)" ]; then
 				testGid="$((testGid + 1))"
 			else
 				_gid="${testGid}"
@@ -194,7 +194,7 @@ function gidNumber () {
 
 		EOF
 		exit 1
-	elif dscl . list /Groups PrimaryGroupID | grep -q "${_gid}" 2&>/dev/null; then
+	elif [ ! -z "$(dscacheutil -q group -a gid ${_gid} 2> /dev/null)" ]; then
 		tee >&2 <<- EOF
 			GID ${_gid} is already in use
 		EOF
@@ -263,6 +263,7 @@ done
 PATH="${PATH}:/usr/local/sbin:/usr/local/bin"
 commands=(
 dscl
+dscacheutil
 defaults
 id
 sed
@@ -326,9 +327,9 @@ fi
 
 # Setup group
 echo "Checking to see if the group ${GROUPNAME} exists:"
-if dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID 2>/dev/null; then
+if [ ! -z "$(dscacheutil -q group -a name "${GROUPNAME}" 2> /dev/null)" ]; then
 	echo "${GROUPNAME} exists."
-elif dscl . -read "/groups/_${GROUPNAME}" PrimaryGroupID 2>/dev/null; then
+elif [ ! -z "$(dscacheutil -q group -a name "_${GROUPNAME}" 2> /dev/null)" ]; then
 	echo "_${GROUPNAME} exists; creating alias..."
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
@@ -347,9 +348,9 @@ fi
 if [ "${opMode}" = "user" ]; then
 	echo "Checking to see if the user ${SHORTNAME} exists:"
 fi
-if [ "${opMode}" = "user" ] && dscl . -read "/users/${SHORTNAME}" UniqueID 2>/dev/null; then
+if [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "${SHORTNAME}" 2> /dev/null)" ]; then
 	echo "${SHORTNAME} exists."
-elif [ "${opMode}" = "user" ] && dscl . -read "/users/_${SHORTNAME}" UniqueID 2>/dev/null; then
+elif [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "_${SHORTNAME}" 2> /dev/null)" ]; then
 	echo "_${SHORTNAME} exists; creating alias..."
 	userAlias "_${SHORTNAME}" "${SHORTNAME}"
 elif [ "${opMode}" = "user" ]; then
