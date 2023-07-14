@@ -69,7 +69,7 @@ function dseditgroupGroup () {
 	local groupmembership="${3}"
 
 
-	dseditgroup create -i "${gid}" "${groupname}"
+	dseditgroup -o create -i "${gid}" "${groupname}"
 	dscl . create "/groups/${groupname}" passwd '*'
 	dscl . create "/groups/${groupname}" GroupMembership "${groupmembership}"
 
@@ -168,7 +168,7 @@ function gidNumber () {
 	elif [ ! -z "${uidMin}" ]; then
 		local testGid="${uidMin}"
 		while [ "${testGid}" -le "${uidMax}" ]; do
-			if [ ! -z "$(dscacheutil -q group -a gid ${testUid} 2> /dev/null)" ]; then
+			if [ ! -z "$(dscacheutil -q group -a gid ${testGid} 2> /dev/null)" ]; then
 				testGid="$((testGid + 1))"
 			else
 				_gid="${testGid}"
