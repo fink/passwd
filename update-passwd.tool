@@ -25,7 +25,9 @@ function sysadminctlUser () {
 	local shell="${5}"
 	local info="${6}"
 
-	sysadminctl -addUser "${name}" -fullName "${info}" -password "*" -hint "" -UID "${uid}" -GID "${gid}" -home "${home}" -shell "${shell}" -roleAccount
+	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password "*" -hint "" -UID "${uid}" -GID "${gid}" -home "${home}" -shell "${shell}" -roleAccount; then
+		exit 1
+	fi
 
 	dscl . create "/users/${name}" IsHidden 1
 	dscl . delete "/users/${name}" AuthenticationAuthority
@@ -44,7 +46,9 @@ function dsclUser () {
 	local info="${6}"
 
 
-	dscl . create "/users/${name}"
+	if ! dscl . create "/users/${name}"; then
+		exit 1
+	fi
 	dscl . create "/users/${name}" name "${name}"
 	dscl . create "/users/${name}" passwd '*'
 	dscl . create "/users/${name}" hint ""
@@ -69,7 +73,9 @@ function dseditgroupGroup () {
 	local groupmembership="${3}"
 
 
-	dseditgroup -o create -i "${gid}" "${groupname}"
+	if ! dseditgroup -o create -i "${gid}" "${groupname}"; then
+		exit 1
+	fi
 	dscl . create "/groups/${groupname}" passwd '*'
 	dscl . create "/groups/${groupname}" GroupMembership "${groupmembership}"
 
@@ -83,7 +89,9 @@ function dsclGroup () {
 	local groupmembership="${3}"
 
 
-	dscl . create "/groups/${groupname}"
+	if ! dscl . create "/groups/${groupname}"; then
+		exit 1
+	fi
 	dscl . create "/groups/${groupname}" name "${groupname}"
 	dscl . create "/groups/${groupname}" passwd '*'
 	dscl . create "/groups/${groupname}" gid "${gid}"
