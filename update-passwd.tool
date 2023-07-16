@@ -25,7 +25,7 @@ function sysadminctlUser () {
 	local shell="${5}"
 	local info="${6}"
 
-	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password "*" -hint "" -UID "${uid}" -GID "${gid}" -home "${home}" -shell "${shell}" -roleAccount; then
+	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password '*' -hint '' -UID "${uid}" -GID "${gid}" -home "${home}" -shell "${shell}" -roleAccount; then
 		exit 1
 	fi
 
