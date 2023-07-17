@@ -17,33 +17,27 @@ fi
 
 
 # Use sysadminctl for primary user creation
-function sysadminctlUser () {
+function dsImport () {
 	local name="${1}"
 	local uid="${2}"
 	local gid="${3}"
 	local home="${4}"
 	local shell="${5}"
 	local info="${6}"
+	local output
 
-	if ! grep -q '^_' < "${name}"; then
-		local aliasN="${name}"
-		name="_${aliasN}"
-	fi
+	output="$(dsimport /dev/stdin '/Local/Default' 'I' --outputfile "/dev/stdout" --template StandardUser <<< "${name}:*:${uid}:${gid}:${info}:${home}:${shell}")"
 
-	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password '*' -UID "${uid}" -GID "${gid}" -roleAccount; then
+	if ! /usr/libexec/PlistBuddy -c "Print :Succeeded:0" /dev/stdin <<< "${output}" 2> /dev/null; then
 		exit 1
 	fi
 
-	dscl . change "/users/${name}" home "${home}"
-	dscl . change "/users/${name}" shell "${shell}"
 	dscl . create "/users/${name}" IsHidden 1
 	dscl . delete "/users/${name}" AuthenticationAuthority
-
-	if [ ! -z "${aliasN}" ]; then
-		userAlias "${aliasN}" "${name}"
-	fi
+	dscl . delete "/users/${name}" accountPolicyData
 
 	defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "${name}"
+	dscacheutil -q user -a name "${name}" 2> /dev/null
 	id "${name}"
 }
 
@@ -60,10 +54,10 @@ function dsclUser () {
 	if ! dscl . create "/users/${name}"; then
 		exit 1
 	fi
+	dscl . create "/users/${name}" uid "${uid}"
 	dscl . create "/users/${name}" name "${name}"
 	dscl . create "/users/${name}" passwd '*'
 	dscl . create "/users/${name}" hint ""
-	dscl . create "/users/${name}" uid "${uid}"
 	dscl . create "/users/${name}" gid "${gid}"
 	dscl . create "/users/${name}" home "${home}"
 	dscl . create "/users/${name}" shell "${shell}"
@@ -293,7 +287,7 @@ tee
 )
 if [ "${sysadminctlVersionRun}" = "1" ]; then
 commands+=(
-sysadminctl
+dsimport
 dseditgroup
 )
 fi
@@ -376,7 +370,7 @@ elif [ "${opMode}" = "user" ]; then
 	echo "${SHORTNAME} does not exist; creating..."
 	: "${gidNumber="$(dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID | cut -d ' ' -f '2')"}"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
-		sysadminctlUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
+		dsImport "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	else
 		dsclUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	fi
