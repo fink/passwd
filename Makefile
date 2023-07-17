@@ -135,7 +135,7 @@ uninstall:
 clean:
 	rm -f update-passwd update-passwd.html update-passwd.1 update-passwd.1.gz
 	rm -f update-passwd.sed logo.svg passwd-fink.conf group-fink.conf
-	rm -f *.tgz *.md5 *.sig 
+	rm -f *.tgz *.md5 *.sig
 	rm -f docbook-xsl.css
 	rm -f README.removing-users.html README.passwd-configs.html README.html
 	rm -f *~ index.html
@@ -153,7 +153,7 @@ docs: \
 	README.passwd-configs.html \
 	README.removing-users.html
 
-# Tag with `git tag -s v/<number>` before running this.
+# Tag with `git tag -s <number>` before running this.
 release: docs dist
-	git tag -v "v/$(VERS)"
+	git tag -v "$(VERS)"
 #	shipper version=$(VERS) | sh -e -x
