@@ -25,12 +25,23 @@ function sysadminctlUser () {
 	local shell="${5}"
 	local info="${6}"
 
-	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password '*' -hint '' -UID "${uid}" -GID "${gid}" -home "${home}" -shell "${shell}" -roleAccount; then
+	if ! grep -q '^_' < "${name}"; then
+		local aliasN="${name}"
+		name="_${aliasN}"
+	fi
+
+	if ! sysadminctl -addUser "${name}" -fullName "${info}" -password '*' -UID "${uid}" -GID "${gid}" -roleAccount; then
 		exit 1
 	fi
 
+	dscl . change "/users/${name}" home "${home}"
+	dscl . change "/users/${name}" shell "${shell}"
 	dscl . create "/users/${name}" IsHidden 1
 	dscl . delete "/users/${name}" AuthenticationAuthority
+
+	if [ ! -z "${aliasN}" ]; then
+		userAlias "${aliasN}" "${name}"
+	fi
 
 	defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "${name}"
 	id "${name}"
