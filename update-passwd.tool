@@ -181,7 +181,7 @@ function gidNumber () {
 	elif [ ! -z "${uidMin}" ]; then
 		local testGid="${uidMin}"
 		while [ "${testGid}" -le "${uidMax}" ]; do
-			if [ ! -z "$(dscacheutil -q group -a gid ${testGid} 2> /dev/null)" ]; then
+			if [ ! -z "$(dscacheutil -q group -a gid "${testGid}" 2> /dev/null)" ]; then
 				testGid="$((testGid + 1))"
 			else
 				_gid="${testGid}"
@@ -207,7 +207,7 @@ function gidNumber () {
 
 		EOF
 		exit 1
-	elif [ ! -z "$(dscacheutil -q group -a gid ${_gid} 2> /dev/null)" ]; then
+	elif [ ! -z "$(dscacheutil -q group -a gid "${_gid}" 2> /dev/null)" ]; then
 		tee >&2 <<- EOF
 			GID ${_gid} is already in use
 		EOF
