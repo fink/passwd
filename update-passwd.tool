@@ -29,6 +29,7 @@ function dsImport () {
 	output="$(dsimport /dev/stdin '/Local/Default' 'I' --outputfile "/dev/stdout" --template StandardUser <<< "${name}:*:${uid}:${gid}:${info}:${home}:${shell}")"
 
 	if ! /usr/libexec/PlistBuddy -c "Print :Succeeded:0" /dev/stdin <<< "${output}" 2> /dev/null; then
+		echo "Could not create user: ${name}" >&2
 		exit 1
 	fi
 
@@ -37,8 +38,8 @@ function dsImport () {
 	dscl . delete "/users/${name}" accountPolicyData
 
 	defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "${name}"
+
 	dscacheutil -q user -a name "${name}" 2> /dev/null
-	id "${name}"
 }
 
 # Use dscl for primary user creation
@@ -52,6 +53,7 @@ function dsclUser () {
 
 
 	if ! dscl . create "/users/${name}"; then
+		echo "Could not create user: ${name}" >&2
 		exit 1
 	fi
 	dscl . create "/users/${name}" uid "${uid}"
@@ -68,7 +70,7 @@ function dsclUser () {
 
 	defaults write /Library/Preferences/com.apple.loginwindow HiddenUsersList -array-add "${name}"
 
-	id "${name}"
+	dscacheutil -q user -a name "${name}" 2> /dev/null
 }
 
 # Use dseditgroup for primary group creation
@@ -79,12 +81,15 @@ function dseditgroupGroup () {
 
 
 	if ! dseditgroup -o create -i "${gid}" "${groupname}"; then
+		echo "Could not create group: ${groupname}" >&2
 		exit 1
 	fi
 	dscl . create "/groups/${groupname}" passwd '*'
 	dscl . create "/groups/${groupname}" GroupMembership "${groupmembership}"
 
 	dscl . create "/groups/${groupname}" IsHidden 1
+
+	dscacheutil -q group -a name "${groupname}" 2> /dev/null
 }
 
 # Use dscl for primary group creation
@@ -95,6 +100,7 @@ function dsclGroup () {
 
 
 	if ! dscl . create "/groups/${groupname}"; then
+		echo "Could not create group: ${groupname}" >&2
 		exit 1
 	fi
 	dscl . create "/groups/${groupname}" name "${groupname}"
@@ -104,7 +110,7 @@ function dsclGroup () {
 
 	dscl . create "/groups/${groupname}" IsHidden 1
 
-	id -Gn "${groupname}"
+	dscacheutil -q group -a name "${groupname}" 2> /dev/null
 }
 
 # Add user alias
@@ -135,7 +141,7 @@ function uidNumber () {
 	elif [ ! -z "${uidMin}" ]; then
 		local testUid="${uidMin}"
 		while [ "${testUid}" -le "${uidMax}" ]; do
-			if /usr/bin/id -u "${testUid}" 2&>/dev/null; then
+			if [ ! -z "$(dscacheutil -q user -a uid "${testUid}" 2> /dev/null)" ]; then
 				testUid="$((testUid + 1))"
 			else
 				_uid="${testUid}"
@@ -161,7 +167,7 @@ function uidNumber () {
 
 		EOF
 		exit 1
-	elif /usr/bin/id -u "${_uid}" 2&>/dev/null; then
+	elif [ ! -z "$(dscacheutil -q user -a uid "${_uid}" 2> /dev/null)" ]; then
 		tee >&2 <<- EOF
 			UID ${_uid} is already in use
 		EOF
@@ -177,7 +183,7 @@ function gidNumber () {
 	local _gid
 
 	if [ ! -z "${fixedGroupFink}" ]; then
-		_uid="$(grep "^${name}:" "${fixedGroupFink}" 2>/dev/null | cut -d ':' -f '3')"
+		_gid="$(grep "^${name}:" "${fixedGroupFink}" 2>/dev/null | cut -d ':' -f '3')"
 	elif [ ! -z "${uidMin}" ]; then
 		local testGid="${uidMin}"
 		while [ "${testGid}" -le "${uidMax}" ]; do
@@ -289,6 +295,7 @@ if [ "${sysadminctlVersionRun}" = "1" ]; then
 commands+=(
 dsimport
 dseditgroup
+/usr/libexec/PlistBuddy
 )
 fi
 for command in "${commands[@]}"; do
@@ -333,10 +340,6 @@ elif [ -f "${prefixPath}/etc/passwd-fink.conf" ] && [ -f "${prefixPath}/etc/grou
 fi
 
 
-# Make an array of the members list
-# membersList=($(echo "${MEMBERS}" | tr ' ' '\n'))
-
-
 
 # Setup group
 echo "Checking to see if the group ${GROUPNAME} exists:"
@@ -347,6 +350,7 @@ elif [ ! -z "$(dscacheutil -q group -a name "_${GROUPNAME}" 2> /dev/null)" ]; th
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
 else
+	echo "${GROUPNAME} does not exist; creating..."
 	gidNumber="$(gidNumber "${GROUPNAME}")"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
