@@ -4,11 +4,15 @@ as follows.
 
 passwd-fink:
 
+```
 <username>:*:<uid>:<gid>::0:0:<description>:<home directory>:<shell>
+```
 
 group-fink:
 
+```
 <groupname>:*:<gid>:<comma-separated-list-of-users>
+```
 
-<field> denotes a field which can be set by the administrator, and everything
+`<field>` denotes a field which can be set by the administrator, and everything
 else is mandatory.

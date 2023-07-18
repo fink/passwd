@@ -1,6 +1,16 @@
 For a more comprehensive changelog of the latest experimental code, see:
         https://github.com/fink/passwd/commits/
 
+Next
+	* Refactor the script from the ground up.
+		* Use sysadminctl on newer systems to create users.
+		* Use dseditgroup on newer systems to create groups.
+		* Reuse existing users more often (including ones that differ only by
+		starting with _).
+		* Eliminate blocking for input.
+	* Add a Make file to control build, install and make tarballs.
+	* Add a Man page
+
 20160421
 	* Add entries for quagga and redis to avoid forcing people to set their UIDs/GIDs 
 	  manually.

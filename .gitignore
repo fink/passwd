@@ -1,0 +1,16 @@
+/*.html
+/*.css
+/*.cache
+/*.1
+/*.1.gz
+/*.tgz
+/*.md5
+/*.sha256
+/*.sig
+/logo.svg
+/update-passwd.sed
+/update-passwd
+/AUTHORS
+/AUTHORS.txt
+/passwd-fink.conf
+/group-fink.conf
