@@ -135,7 +135,7 @@ uninstall:
 clean:
 	rm -f update-passwd update-passwd.html update-passwd.1 update-passwd.1.gz
 	rm -f update-passwd.sed logo.svg passwd-fink.conf group-fink.conf
-	rm -f *.tgz *.md5 *.sig
+	rm -f *.tgz *.md5 *.sig *.sha256
 	rm -f docbook-xsl.css
 	rm -f README.removing-users.html README.passwd-configs.html README.html
 	rm -f *~ index.html

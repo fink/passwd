@@ -295,6 +295,7 @@ if [ "${sysadminctlVersionRun}" = "1" ]; then
 commands+=(
 dsimport
 dseditgroup
+dsmemberutil
 /usr/libexec/PlistBuddy
 )
 fi
@@ -375,6 +376,7 @@ elif [ "${opMode}" = "user" ]; then
 	: "${gidNumber="$(dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID | cut -d ' ' -f '2')"}"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dsImport "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
+		dsmemberutil flushcache
 	else
 		dsclUser "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
 	fi
