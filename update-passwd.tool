@@ -344,13 +344,13 @@ fi
 # Setup group
 echo "Checking to see if the group ${GROUPNAME} exists:"
 if [ ! -z "$(dscacheutil -q group -a name "${GROUPNAME}" 2> /dev/null)" ]; then
-	echo "${GROUPNAME} exists."
+	echo "Group ${GROUPNAME} already exists."
 elif [ ! -z "$(dscacheutil -q group -a name "_${GROUPNAME}" 2> /dev/null)" ]; then
-	echo "_${GROUPNAME} exists; creating alias..."
+	echo "Group _${GROUPNAME} exists; creating alias..."
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
 else
-	echo "${GROUPNAME} does not exist; creating..."
+	echo "Group ${GROUPNAME} does not exist; creating..."
 	gidNumber="$(gidNumber "${GROUPNAME}")"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
@@ -366,12 +366,12 @@ if [ "${opMode}" = "user" ]; then
 	echo "Checking to see if the user ${SHORTNAME} exists:"
 fi
 if [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "${SHORTNAME}" 2> /dev/null)" ]; then
-	echo "${SHORTNAME} exists."
+	echo "User ${SHORTNAME} already exists."
 elif [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "_${SHORTNAME}" 2> /dev/null)" ]; then
-	echo "_${SHORTNAME} exists; creating alias..."
+	echo "User _${SHORTNAME} exists; creating alias..."
 	userAlias "_${SHORTNAME}" "${SHORTNAME}"
 elif [ "${opMode}" = "user" ]; then
-	echo "${SHORTNAME} does not exist; creating..."
+	echo "User ${SHORTNAME} does not exist; creating..."
 	: "${gidNumber="$(dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID | cut -d ' ' -f '2')"}"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dsImport "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
