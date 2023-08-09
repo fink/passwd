@@ -266,6 +266,9 @@ while getopts ":n:g:h:s:i:m:V" OPTION; do
 		m)
 			MEMBERS="${OPTARG}"
 		;;
+		R)
+			ID_RANGE="${OPTARG}"
+		;;
 		V)
 			echo "update-passwd ${UPVERSION}" >&2
 			exit 0
@@ -332,7 +335,10 @@ fi
 
 
 # Decide if ids are static or dynamic
-if [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f "2")" = "true" ]; then
+if [ ! -z "${ID_RANGE}" ]; then
+	uidMin="$(cut -d ':' -f 1 <<< "${ID_RANGE}")"
+	uidMax="$(cut -d ':' -f 2 <<< "${ID_RANGE}")"
+elif [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f "2")" = "true" ]; then
 	uidMin="$(grep '^AutoUidMin:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
 	uidMax="$(grep '^AutoUidMax:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]\{1,\}: :g' | cut -d ' ' -f '2')"
 elif [ -f "${prefixPath}/etc/passwd-fink.conf" ] && [ -f "${prefixPath}/etc/group-fink.conf" ]; then
