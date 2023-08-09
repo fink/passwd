@@ -267,7 +267,7 @@ while getopts ":n:g:h:s:i:m:V" OPTION; do
 			MEMBERS="${OPTARG}"
 		;;
 		V)
-			echo "update-passwd ${UPVERSION}"
+			echo "update-passwd ${UPVERSION}" >&2
 			exit 0
 		;;
 		?)
@@ -338,20 +338,23 @@ if [ "$(grep '^AutoUid:' "${prefixPath}/etc/passwd.conf" | sed -e 's:[[:blank:]]
 elif [ -f "${prefixPath}/etc/passwd-fink.conf" ] && [ -f "${prefixPath}/etc/group-fink.conf" ]; then
 	fixedUserFink="${prefixPath}/etc/passwd-fink.conf"
 	fixedGroupFink="${prefixPath}/etc/group-fink.conf"
+else
+	echo "Could not find config files; please reinstall." >&2
+	exit 1
 fi
 
 
 
 # Setup group
-echo "Checking to see if the group ${GROUPNAME} exists:"
+echo "Checking to see if the group ${GROUPNAME} exists:" >&2
 if [ ! -z "$(dscacheutil -q group -a name "${GROUPNAME}" 2> /dev/null)" ]; then
-	echo "Group ${GROUPNAME} already exists."
+	echo "Group ${GROUPNAME} already exists." >&2
 elif [ ! -z "$(dscacheutil -q group -a name "_${GROUPNAME}" 2> /dev/null)" ]; then
-	echo "Group _${GROUPNAME} exists; creating alias..."
+	echo "Group _${GROUPNAME} exists; creating alias..." >&2
 	groupAlias "_${GROUPNAME}" "${GROUPNAME}"
 	dscl . -merge "/groups/_${GROUPNAME}" GroupMembership "${MEMBERS}"
 else
-	echo "Group ${GROUPNAME} does not exist; creating..."
+	echo "Group ${GROUPNAME} does not exist; creating..." >&2
 	gidNumber="$(gidNumber "${GROUPNAME}")"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dseditgroupGroup "${GROUPNAME}" "${gidNumber}" "${MEMBERS}"
@@ -364,15 +367,15 @@ fi
 
 # Setup user
 if [ "${opMode}" = "user" ]; then
-	echo "Checking to see if the user ${SHORTNAME} exists:"
+	echo "Checking to see if the user ${SHORTNAME} exists:" >&2
 fi
 if [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "${SHORTNAME}" 2> /dev/null)" ]; then
-	echo "User ${SHORTNAME} already exists."
+	echo "User ${SHORTNAME} already exists." >&2
 elif [ "${opMode}" = "user" ] && [ ! -z "$(dscacheutil -q user -a name "_${SHORTNAME}" 2> /dev/null)" ]; then
-	echo "User _${SHORTNAME} exists; creating alias..."
+	echo "User _${SHORTNAME} exists; creating alias..." >&2
 	userAlias "_${SHORTNAME}" "${SHORTNAME}"
 elif [ "${opMode}" = "user" ]; then
-	echo "User ${SHORTNAME} does not exist; creating..."
+	echo "User ${SHORTNAME} does not exist; creating..." >&2
 	: "${gidNumber="$(dscl . -read "/groups/${GROUPNAME}" PrimaryGroupID | cut -d ' ' -f '2')"}"
 	if [ "${sysadminctlVersionRun}" = "1" ]; then
 		dsImport "${SHORTNAME}" "$(uidNumber "${SHORTNAME}")" "${gidNumber}" "${HOME}" "${SHELL}" "${INFO}"
