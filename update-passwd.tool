@@ -246,7 +246,7 @@ EOF
 
 # Config
 UPVERSION="&&UPVERSION&&"
-while getopts ":n:g:h:s:i:m:V" OPTION; do
+while getopts ":n:g:h:s:i:m:R:V" OPTION; do
 	case "${OPTION}" in
 		n)
 			SHORTNAME="${OPTARG}"
